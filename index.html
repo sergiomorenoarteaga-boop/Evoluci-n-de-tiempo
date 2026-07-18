@@ -1,154 +1,1260 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Edad de Piedra</title>
-    <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #ui-top {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.75);
-            padding: 10px 18px;
-            border-radius: 12px;
-            color: white;
-            backdrop-filter: blur(5px);
-            z-index: 10;
-            border-left: 4px solid #d4a017;
-        }
-        #resources { font-size: 18px; font-weight: bold; margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 12px; }
-        #constructions-info, #population-info { font-size: 14px; }
-        .roles-panel {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 170px;
-            background: rgba(0,0,0,0.85);
-            border-radius: 16px;
-            padding: 12px;
-            color: white;
-            border: 1px solid #d4a017;
-            z-index: 20;
-            text-align: center;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .role-card {
-            background: #2c2c2c;
-            margin: 6px 0;
-            padding: 6px 8px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: grab;
-            border: 1px solid #555;
-        }
-        .role-card:active { cursor: grabbing; }
-        .role-icon { font-size: 24px; }
-        .role-name { font-size: 13px; font-weight: bold; }
-        .role-desc { font-size: 9px; color: #ccc; }
-        .btn-fire {
-            margin-top: 10px;
-            background: #8b3a0f;
-            border: 1px solid #ff8833;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 14px;
-            width: 100%;
-        }
-        .characters-status {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 12px;
-            padding: 8px 12px;
-            color: white;
-            font-size: 12px;
-            z-index: 10;
-            max-height: 200px;
-            overflow-y: auto;
-            min-width: 120px;
-        }
-        .instruction {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.5);
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: white;
-        }
-        #notification-container {
-            position: absolute;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            pointer-events: none;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .toast {
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 6px 18px;
-            border-radius: 30px;
-            border-left: 4px solid #d4a017;
-            font-size: 14px;
-            animation: fadeIn 0.3s;
-        }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
-        @media (max-width: 700px) {
-            .roles-panel { width: 130px; padding: 8px; right: 5px; top: 10px; }
-            .characters-status { font-size: 10px; max-height: 120px; }
-            #resources { font-size: 14px; gap: 6px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Edad de Piedra</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{overflow:hidden;font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#fff;touch-action:none;}
+
+/* ===== PANTALLAS ===== */
+.screen{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s,transform .6s;z-index:100;}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(1.05);}
+
+/* ===== INICIO ===== */
+#s-start{background:linear-gradient(180deg,#1a1a2e,#16213e,#0f3460);}
+#particles-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.start-box{position:relative;z-index:2;text-align:center;padding:20px;max-width:680px;animation:fadeUp 1.2s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.g-title{font-size:clamp(36px,8vw,72px);font-weight:900;background:linear-gradient(135deg,#f7971e,#ffd200);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;font-family:Georgia,serif;animation:pulse 3s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+.g-sub{font-size:clamp(11px,2vw,18px);color:#ffd700;opacity:.8;letter-spacing:6px;font-weight:300;margin:6px 0 18px;}
+.divider{width:180px;height:3px;background:linear-gradient(90deg,transparent,#ffd700,transparent);margin:12px auto;}
+.g-desc{font-size:clamp(12px,2vw,15px);color:rgba(255,255,255,.7);line-height:1.8;margin:10px auto;max-width:480px;}
+.g-desc span{color:#ffd700;font-weight:600;}
+.res-row{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0;}
+.res-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:5px 12px;border-radius:20px;font-size:13px;color:rgba(255,255,255,.65);}
+.btn-gold{padding:14px 52px;font-size:clamp(16px,3vw,22px);font-weight:700;color:#1a1a2e;background:linear-gradient(135deg,#f7971e,#ffd200);border:none;border-radius:50px;cursor:pointer;transition:all .25s;box-shadow:0 4px 30px rgba(255,215,0,.35);letter-spacing:1px;margin-top:20px;}
+.btn-gold:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 40px rgba(255,215,0,.5);}
+.btn-gold:active{transform:scale(.97);}
+.credits{margin-top:18px;font-size:12px;color:rgba(255,255,255,.25);}
+.credits span{color:rgba(255,215,0,.5);}
+.v-tag{position:absolute;bottom:15px;right:20px;font-size:11px;color:rgba(255,255,255,.15);z-index:3;}
+
+/* ===== PERSONALIZACIÓN ===== */
+#s-custom{background:linear-gradient(160deg,#1a1a2e,#16213e);}
+.custom-box{width:min(96vw,580px);background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.15);border-radius:20px;padding:clamp(16px,4vw,32px);text-align:center;max-height:96vh;overflow-y:auto;}
+.custom-box h2{font-size:clamp(18px,4vw,26px);background:linear-gradient(135deg,#f7971e,#ffd200);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.custom-box p{color:rgba(255,255,255,.4);font-size:12px;margin-bottom:16px;}
+.section-label{font-size:12px;color:#ffd700;letter-spacing:2px;text-align:left;margin:14px 0 6px;text-transform:uppercase;}
+.input-field{width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:15px;outline:none;transition:border .2s;}
+.input-field:focus{border-color:rgba(255,215,0,.5);}
+.color-row{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0;}
+.color-btn{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.color-btn.active{border-color:#ffd700;transform:scale(1.2);}
+.chief-preview{width:90px;height:90px;margin:10px auto;position:relative;}
+.chief-preview canvas{border-radius:50%;background:rgba(255,255,255,.05);border:2px solid rgba(255,215,0,.3);}
+.icon-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:4px 0;}
+.icon-btn{width:40px;height:40px;font-size:22px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.icon-btn.active{border-color:#ffd700;background:rgba(255,215,0,.15);}
+.btn-row{display:flex;gap:10px;margin-top:18px;}
+.btn-outline{flex:1;padding:12px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.6);border-radius:30px;cursor:pointer;font-size:14px;transition:all .2s;}
+.btn-outline:hover{border-color:rgba(255,215,0,.4);color:#fff;}
+
+/* ===== HUD ===== */
+#hud{position:fixed;top:0;left:0;width:100%;z-index:50;pointer-events:none;}
+#hud.hidden{display:none;}
+.hud-top{display:flex;align-items:center;justify-content:space-between;padding:8px clamp(8px,2vw,16px);background:rgba(0,0,0,.55);backdrop-filter:blur(6px);gap:6px;flex-wrap:wrap;}
+.res-bar{display:flex;flex-wrap:wrap;gap:clamp(4px,1.5vw,10px);}
+.res-item{display:flex;align-items:center;gap:4px;font-size:clamp(11px,1.8vw,14px);background:rgba(255,255,255,.07);padding:3px 8px;border-radius:12px;}
+.res-item .ri{font-size:clamp(13px,2vw,16px);}
+.res-item .rv{font-weight:700;color:#ffd700;}
+.hud-info{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.info-chip{font-size:clamp(10px,1.6vw,13px);background:rgba(255,255,255,.07);padding:3px 10px;border-radius:12px;color:rgba(255,255,255,.8);}
+.info-chip.season-spring{color:#7fff7f;}
+.info-chip.season-summer{color:#ffd700;}
+.info-chip.season-autumn{color:#ff9944;}
+.info-chip.season-winter{color:#88ccff;}
+.btn-hud{pointer-events:all;font-size:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:4px 10px;cursor:pointer;transition:all .2s;}
+.btn-hud:hover{background:rgba(255,215,0,.2);}
+
+/* ===== CANVAS ===== */
+#game-canvas{display:block;position:fixed;top:0;left:0;}
+
+/* ===== PANELES ===== */
+.panel{position:fixed;z-index:60;background:rgba(15,20,40,.92);border:1px solid rgba(255,215,0,.2);border-radius:16px;padding:clamp(12px,3vw,20px);backdrop-filter:blur(8px);transition:opacity .3s,transform .3s;}
+.panel.hidden{opacity:0;pointer-events:none;transform:scale(.95);}
+.panel h3{font-size:15px;color:#ffd700;margin-bottom:12px;letter-spacing:1px;}
+.panel-close{float:right;background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;margin-top:-4px;}
+.panel-close:hover{color:#fff;}
+
+/* Panel construcción */
+#p-build{bottom:70px;left:50%;transform:translateX(-50%);width:min(96vw,520px);}
+#p-build.hidden{transform:translateX(-50%) scale(.95);}
+.build-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.build-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;cursor:pointer;transition:all .2s;text-align:center;}
+.build-card:hover:not(.locked){background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.4);}
+.build-card.locked{opacity:.4;cursor:not-allowed;}
+.build-card .bicon{font-size:28px;margin-bottom:4px;}
+.build-card .bname{font-size:12px;font-weight:600;color:#fff;}
+.build-card .bcost{font-size:10px;color:rgba(255,255,255,.45);margin-top:3px;}
+.build-card .bpop{font-size:10px;color:#7fff7f;margin-top:2px;}
+
+/* Panel roles */
+#p-roles{top:70px;right:10px;width:min(96vw,220px);}
+.role-list{display:flex;flex-direction:column;gap:6px;}
+.role-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:10px;padding:6px 10px;}
+.role-left{display:flex;align-items:center;gap:8px;font-size:13px;}
+.role-count{font-size:12px;color:#ffd700;font-weight:700;}
+.role-btn{width:22px;height:22px;border:none;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.role-btn.plus{background:rgba(100,200,100,.25);color:#7fff7f;}
+.role-btn.minus{background:rgba(200,100,100,.25);color:#ff7f7f;}
+.role-btn:hover{filter:brightness(1.4);}
+
+/* Panel tech */
+#p-tech{top:70px;left:10px;width:min(96vw,260px);}
+.tech-list{display:flex;flex-direction:column;gap:8px;}
+.tech-item{background:rgba(255,255,255,.05);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px;}
+.tech-item.done{border-left:3px solid #ffd700;}
+.tech-item.locked{opacity:.5;}
+.tech-icon{font-size:22px;}
+.tech-info .tname{font-size:13px;font-weight:600;}
+.tech-info .tcost{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+.tech-btn{margin-left:auto;padding:4px 10px;font-size:11px;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);color:#ffd700;border-radius:8px;cursor:pointer;white-space:nowrap;}
+.tech-btn:hover{background:rgba(255,215,0,.3);}
+.tech-btn.done-btn{background:rgba(100,200,100,.15);border-color:rgba(100,200,100,.3);color:#7fff7f;cursor:default;}
+
+/* Panel pop */
+#p-pop{top:70px;left:50%;transform:translateX(-50%);width:min(96vw,400px);}
+#p-pop.hidden{transform:translateX(-50%) scale(.95);}
+.pop-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;}
+.pop-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border-radius:10px;padding:8px 12px;}
+.pop-avatar{font-size:24px;}
+.pop-details{flex:1;}
+.pop-name{font-size:13px;font-weight:600;}
+.pop-role{font-size:11px;color:rgba(255,255,255,.45);}
+.pop-hp{font-size:11px;color:#7fff7f;}
+.hp-bar{width:60px;height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:3px;}
+.hp-fill{height:100%;border-radius:3px;background:#7fff7f;transition:width .3s;}
+
+/* Mensajes flotantes */
+#msg-area{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:90;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.msg-float{background:rgba(0,0,0,.75);border:1px solid rgba(255,215,0,.3);color:#ffd700;padding:8px 20px;border-radius:20px;font-size:13px;animation:msgAnim 2.5s ease forwards;}
+@keyframes msgAnim{0%{opacity:0;transform:translateY(10px)}15%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+
+/* Joystick móvil */
+#joystick-zone{position:fixed;bottom:20px;left:20px;z-index:55;display:none;}
+#joystick-base{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);position:relative;}
+#joystick-stick{width:36px;height:36px;border-radius:50%;background:rgba(255,215,0,.4);border:2px solid rgba(255,215,0,.6);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transition:none;}
+
+/* Bottom bar */
+#bottom-bar{position:fixed;bottom:0;left:0;width:100%;z-index:55;padding:6px clamp(6px,2vw,14px);display:flex;justify-content:center;gap:clamp(4px,1.5vw,10px);background:rgba(0,0,0,.5);backdrop-filter:blur(6px);}
+#bottom-bar.hidden{display:none;}
+.bb-btn{padding:8px clamp(10px,2vw,18px);font-size:clamp(11px,1.8vw,14px);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.bb-btn:hover,.bb-btn.active{background:rgba(255,215,0,.18);border-color:rgba(255,215,0,.4);color:#ffd700;}
+
+/* Game over / win */
+#s-gameover{background:rgba(0,0,0,.8);}
+.go-box{text-align:center;padding:40px 30px;background:rgba(15,20,40,.95);border:1px solid rgba(255,215,0,.2);border-radius:20px;max-width:400px;width:90vw;}
+.go-box h2{font-size:clamp(24px,5vw,36px);margin-bottom:10px;}
+.go-box p{color:rgba(255,255,255,.6);font-size:14px;margin-bottom:24px;line-height:1.7;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.stat-box{background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center;}
+.stat-box .sv{font-size:22px;font-weight:700;color:#ffd700;}
+.stat-box .sl{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px;}
+
+/* Responsive joystick show */
+@media (pointer:coarse){#joystick-zone{display:block;}}
+@media (max-width:600px){
+  .hud-top{padding:6px 8px;}
+  #p-roles{top:auto;bottom:70px;right:0;border-bottom-right-radius:0;border-top-right-radius:0;}
+}
+</style>
 </head>
 <body>
-    <div id="ui-top">
-        <div id="resources">
-            <span>🌲 Madera: <span id="wood">0</span></span>
-            <span>🪨 Piedra: <span id="stone">0</span></span>
-            <span>🍓 Comida: <span id="food">20</span></span>
-        </div>
-        <div id="constructions-info">🏠 Cabañas: <span id="huts">0</span> &nbsp;| 🔥 Fogatas: <span id="fires">0</span></div>
-        <div id="population-info">👥 Población: <span id="pop-count">3</span></div>
-    </div>
 
-    <div class="roles-panel" id="roles-panel">
-        <h3>📦 Arrastra un rol</h3>
-        <div class="role-card" draggable="true" data-role="lumberjack"><div class="role-icon">🌲</div><div><div class="role-name">Leñador</div><div class="role-desc">Corta árboles</div></div></div>
-        <div class="role-card" draggable="true" data-role="miner"><div class="role-icon">⛏️</div><div><div class="role-name">Minero</div><div class="role-desc">Mineral + piedra</div></div></div>
-        <div class="role-card" draggable="true" data-role="builder"><div class="role-icon">🏠</div><div><div class="role-name">Constructor</div><div class="role-desc">Construye cabañas</div></div></div>
-        <div class="role-card" draggable="true" data-role="gatherer"><div class="role-icon">🍓</div><div><div class="role-name">Recolector</div><div class="role-desc">Recoge bayas</div></div></div>
-        <button class="btn-fire" id="btn-build-fire">🔥 Construir Fogata (8M/4P)</button>
+<!-- ===== PANTALLA INICIO ===== -->
+<div class="screen" id="s-start">
+  <canvas id="particles-canvas"></canvas>
+  <div class="start-box">
+    <div class="g-title">⛏️ Edad de Piedra</div>
+    <div class="g-sub">CONSTRUYE TU TRIBU</div>
+    <div class="divider"></div>
+    <div class="g-desc">
+      <span>🌲</span> Recolecta recursos · <span>🏠</span> Construye tu aldea<br>
+      <span>👥</span> Asigna roles · <span>🔬</span> Investiga tecnologías<br>
+      <span>🌦️</span> Sobrevive a las estaciones
     </div>
-
-    <div class="characters-status" id="char-status">
-        <strong>🧑 Miembros:</strong>
-        <div id="character-list"></div>
+    <div class="res-row">
+      <div class="res-chip">🌲 Madera</div>
+      <div class="res-chip">🪨 Piedra</div>
+      <div class="res-chip">🍓 Comida</div>
+      <div class="res-chip">🐟 Pescado</div>
+      <div class="res-chip">🍖 Carne</div>
+      <div class="res-chip">🔬 Ciencia</div>
     </div>
-    <div id="notification-container"></div>
-    <div class="instruction">🖱️ Arrastra rol sobre personaje. 🎮 Mueve al Jefe con WASD.</div>
+    <div class="g-desc" style="font-size:13px;margin-top:4px;">
+      🕹️ <span>WASD / Joystick</span> mueve al Jefe · 🏗️ <span>6</span> tipos de edificios<br>
+      🎭 <span>5</span> roles de tribu · 🔬 <span>8</span> tecnologías · 🌦️ <span>4</span> estaciones
+    </div>
+    <button class="btn-gold" id="btn-start">⛏️ PERSONALIZAR Y JUGAR</button>
+    <div class="credits">🏹 <span>Edad de Piedra v3.0</span> · Hecho con ❤️</div>
+  </div>
+  <div class="v-tag">v3.0 · 2026</div>
+</div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
-            }
-        }
-    </script>
-    <script type="module" src="main.js"></script>
+<!-- ===== PERSONALIZACIÓN ===== -->
+<div class="screen hidden" id="s-custom">
+  <div class="custom-box">
+    <h2>⚔️ Personaliza tu Jefe</h2>
+    <p>Diseña al líder de tu tribu antes de comenzar</p>
+
+    <div class="section-label">👁️ Vista previa</div>
+    <div class="chief-preview"><canvas id="preview-canvas" width="90" height="90"></canvas></div>
+
+    <div class="section-label">📛 Nombre del Jefe</div>
+    <input class="input-field" id="chief-name" type="text" maxlength="18" placeholder="Ej: Krom el Poderoso" value="Gran Jefe">
+
+    <div class="section-label">🏕️ Nombre de la Tribu</div>
+    <input class="input-field" id="tribe-name" type="text" maxlength="18" placeholder="Ej: Los Osos del Norte" value="Tribu del Fuego">
+
+    <div class="section-label">🎨 Color de Piel</div>
+    <div class="color-row" id="skin-colors"></div>
+
+    <div class="section-label">👕 Color de Ropa</div>
+    <div class="color-row" id="cloth-colors"></div>
+
+    <div class="section-label">🪖 Ícono / Símbolo</div>
+    <div class="icon-row" id="chief-icons"></div>
+
+    <div class="btn-row">
+      <button class="btn-outline" id="btn-back-custom">← Volver</button>
+      <button class="btn-gold" id="btn-play-custom" style="flex:2;margin-top:0;">🚀 ¡COMENZAR AVENTURA!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GAME OVER ===== -->
+<div class="screen hidden" id="s-gameover">
+  <div class="go-box">
+    <div id="go-emoji" style="font-size:64px;margin-bottom:10px;">💀</div>
+    <h2 id="go-title">Tu tribu pereció</h2>
+    <p id="go-msg">Tu aldea no sobrevivió al invierno. ¡Inténtalo de nuevo!</p>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="sv" id="go-days">0</div><div class="sl">Días Sobrevividos</div></div>
+      <div class="stat-box"><div class="sv" id="go-pop">0</div><div class="sl">Máx. Población</div></div>
+      <div class="stat-box"><div class="sv" id="go-built">0</div><div class="sl">Edificios</div></div>
+      <div class="stat-box"><div class="sv" id="go-tech">0</div><div class="sl">Tecnologías</div></div>
+    </div>
+    <button class="btn-gold" id="btn-restart">🔄 Jugar de Nuevo</button>
+  </div>
+</div>
+
+<!-- ===== HUD ===== -->
+<div id="hud" class="hidden">
+  <div class="hud-top">
+    <div class="res-bar">
+      <div class="res-item"><span class="ri">🌲</span><span class="rv" id="r-wood">0</span></div>
+      <div class="res-item"><span class="ri">🪨</span><span class="rv" id="r-stone">0</span></div>
+      <div class="res-item"><span class="ri">🍖</span><span class="rv" id="r-food">0</span></div>
+      <div class="res-item"><span class="ri">🐟</span><span class="rv" id="r-fish">0</span></div>
+      <div class="res-item"><span class="ri">🔬</span><span class="rv" id="r-sci">0</span></div>
+    </div>
+    <div class="hud-info">
+      <div class="info-chip" id="hud-season">🌸 Primavera</div>
+      <div class="info-chip" id="hud-day">Día 1</div>
+      <div class="info-chip" id="hud-pop">👥 1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CANVAS JUEGO ===== -->
+<canvas id="game-canvas"></canvas>
+
+<!-- ===== PANEL CONSTRUCCIÓN ===== -->
+<div class="panel hidden" id="p-build">
+  <h3>🏗️ Construir <button class="panel-close" id="close-build">✕</button></h3>
+  <div class="build-grid" id="build-grid"></div>
+</div>
+
+<!-- ===== PANEL ROLES ===== -->
+<div class="panel hidden" id="p-roles">
+  <h3>👥 Roles <button class="panel-close" id="close-roles">✕</button></h3>
+  <div class="role-list" id="role-list"></div>
+</div>
+
+<!-- ===== PANEL TECNOLOGÍA ===== -->
+<div class="panel hidden" id="p-tech">
+  <h3>🔬 Tecnologías <button class="panel-close" id="close-tech">✕</button></h3>
+  <div class="tech-list" id="tech-list"></div>
+</div>
+
+<!-- ===== PANEL POBLACIÓN ===== -->
+<div class="panel hidden" id="p-pop">
+  <h3>🧑 Tu Tribu <button class="panel-close" id="close-pop">✕</button></h3>
+  <div class="pop-list" id="pop-list"></div>
+</div>
+
+<!-- ===== MENSAJES ===== -->
+<div id="msg-area"></div>
+
+<!-- ===== JOYSTICK MÓVIL ===== -->
+<div id="joystick-zone">
+  <div id="joystick-base">
+    <div id="joystick-stick"></div>
+  </div>
+</div>
+
+<!-- ===== BOTTOM BAR ===== -->
+<div id="bottom-bar" class="hidden">
+  <button class="bb-btn" id="bb-build">🏗️ Construir</button>
+  <button class="bb-btn" id="bb-roles">👥 Roles</button>
+  <button class="bb-btn" id="bb-tech">🔬 Tecno.</button>
+  <button class="bb-btn" id="bb-pop">🧑 Tribu</button>
+</div>
+
+<script>
+/* ===================================================
+   EDAD DE PIEDRA v3.0 - Motor de Juego Completo
+   =================================================== */
+
+// ==================== PARTÍCULAS INICIO ====================
+(function(){
+  const cv=document.getElementById('particles-canvas'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+  addEventListener('resize',resize);resize();
+  for(let i=0;i<70;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+.5,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,o:Math.random()*.4+.15});
+  function anim(){
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<130){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(255,215,0,${.08*(1-d/130)})`;ctx.lineWidth=.5;ctx.stroke();}
+      }
+      const p=pts[i];p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,215,0,${p.o})`;ctx.fill();
+    }
+    requestAnimationFrame(anim);
+  }
+  anim();
+})();
+
+// ==================== PERSONALIZACIÓN ====================
+const SKIN_COLORS=['#FFDAB9','#F4C68A','#C68642','#8D5524','#4A2511','#FFE0BD'];
+const CLOTH_COLORS=['#8B4513','#556B2F','#2F4F4F','#8B0000','#191970','#4682B4'];
+const CHIEF_ICONS=['👑','⚔️','🪖','🗡️','🏹','🦅','🐺','🔥','⚡','🛡️'];
+
+let chiefConfig={name:'Gran Jefe',tribe:'Tribu del Fuego',skin:'#C68642',cloth:'#8B4513',icon:'👑'};
+
+function buildCustomUI(){
+  const sc=document.getElementById('skin-colors');
+  SKIN_COLORS.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='color-btn'+(c===chiefConfig.skin?' active':'');
+    b.style.background=c;b.dataset.c=c;
+    b.onclick=()=>{chiefConfig.skin=c;sc.querySelectorAll('.color-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');drawPreview();};
+    sc.appendChild(b);
+  });
+  const cc=document.getElementById('cloth-colors');
+  CLOTH_COLORS.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='color-btn'+(c===chiefConfig.cloth?' active':'');
+    b.style.background=c;b.dataset.c=c;
+    b.onclick=()=>{chiefConfig.cloth=c;cc.querySelectorAll('.color-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');drawPreview();};
+    cc.appendChild(b);
+  });
+  const ir=document.getElementById('chief-icons');
+  CHIEF_ICONS.forEach(ic=>{
+    const b=document.createElement('button');
+    b.className='icon-btn'+(ic===chiefConfig.icon?' active':'');
+    b.textContent=ic;
+    b.onclick=()=>{chiefConfig.icon=ic;ir.querySelectorAll('.icon-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');drawPreview();};
+    ir.appendChild(b);
+  });
+  document.getElementById('chief-name').addEventListener('input',e=>{chiefConfig.name=e.target.value||'Gran Jefe';drawPreview();});
+  document.getElementById('tribe-name').addEventListener('input',e=>{chiefConfig.tribe=e.target.value||'Tribu del Fuego';});
+}
+
+function drawPreview(){
+  const cv=document.getElementById('preview-canvas'),ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,90,90);
+  // Cuerpo
+  ctx.fillStyle=chiefConfig.cloth;
+  ctx.beginPath();ctx.ellipse(45,65,18,20,0,0,Math.PI*2);ctx.fill();
+  // Cabeza
+  ctx.fillStyle=chiefConfig.skin;
+  ctx.beginPath();ctx.arc(45,35,20,0,Math.PI*2);ctx.fill();
+  // Ojos
+  ctx.fillStyle='#333';
+  ctx.beginPath();ctx.arc(38,33,3,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(52,33,3,0,Math.PI*2);ctx.fill();
+  // Boca
+  ctx.strokeStyle='#333';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(45,39,7,0.2,Math.PI-0.2);ctx.stroke();
+  // Icono
+  ctx.font='18px serif';ctx.textAlign='center';ctx.fillText(chiefConfig.icon,45,16);
+}
+
+// ==================== NAVEGACIÓN PANTALLAS ====================
+document.getElementById('btn-start').onclick=()=>{
+  document.getElementById('s-start').classList.add('hidden');
+  document.getElementById('s-custom').classList.remove('hidden');
+  buildCustomUI();drawPreview();
+};
+document.getElementById('btn-back-custom').onclick=()=>{
+  document.getElementById('s-custom').classList.add('hidden');
+  document.getElementById('s-start').classList.remove('hidden');
+};
+document.getElementById('btn-play-custom').onclick=()=>{
+  chiefConfig.name=document.getElementById('chief-name').value||'Gran Jefe';
+  chiefConfig.tribe=document.getElementById('tribe-name').value||'Tribu del Fuego';
+  document.getElementById('s-custom').classList.add('hidden');
+  startGame();
+};
+document.getElementById('btn-restart').onclick=()=>{
+  document.getElementById('s-gameover').classList.add('hidden');
+  document.getElementById('s-start').classList.remove('hidden');
+};
+
+// ==================== MOTOR DEL JUEGO ====================
+const canvas=document.getElementById('game-canvas');
+const ctx=canvas.getContext('2d');
+let W,H,gameRunning=false,animId=null;
+
+// --- Estado del juego ---
+const G={
+  resources:{wood:30,stone:20,food:40,fish:0,science:0},
+  day:1,tick:0,season:0,seasonDay:0,
+  seasonNames:['🌸 Primavera','☀️ Verano','🍂 Otoño','❄️ Invierno'],
+  seasonColors:['#2d5a27','#3d6b2d','#5a3d1a','#1a2d4a'],
+  maxPop:0,builtCount:0,techCount:0,
+  techs:{},
+  camera:{x:0,y:0},
+  keys:{},
+  tiles:[],TSIZE:48,TCOLS:40,TROWS:40,
+  buildings:[],
+  units:[],
+  chief:null,
+  resources_nodes:[],
+  roles:{hunter:0,gatherer:0,builder:0,fisher:0,shaman:0},
+  unassigned:0,
+  paused:false,
+  score:0
+};
+
+const TILE_TYPES={
+  GRASS:0,WATER:1,SAND:2,FOREST:3,ROCK:4,SNOW:5
+};
+
+const TECHS=[
+  {id:'fire',name:'Control del Fuego',icon:'🔥',cost:{science:5},desc:'Desbloquea hoguera',done:false,req:[]},
+  {id:'tools',name:'Herramientas',icon:'🪓',cost:{science:8},desc:'+50% recolección',done:false,req:[]},
+  {id:'farming',name:'Agricultura',icon:'🌾',cost:{science:12},desc:'Desbloquea granja',done:false,req:['tools']},
+  {id:'fishing',name:'Pesca',icon:'🎣',cost:{science:10},desc:'Desbloquea muelle',done:false,req:['tools']},
+  {id:'construction',name:'Construcción',icon:'🏗️',cost:{science:15},desc:'Desbloquea choza grande',done:false,req:['tools']},
+  {id:'medicine',name:'Medicina',icon:'💊',cost:{science:20},desc:'Tribu más resistente',done:false,req:['farming']},
+  {id:'trade',name:'Comercio',icon:'🤝',cost:{science:25},desc:'Almacén doble',done:false,req:['construction']},
+  {id:'writing',name:'Escritura',icon:'📜',cost:{science:30},desc:'Ciencia x2',done:false,req:['medicine','trade']},
+];
+
+const BUILDINGS=[
+  {id:'campfire',name:'Hoguera',icon:'🔥',cost:{wood:5,stone:3},pop:0,desc:'Calienta en invierno',req:'fire',built:false},
+  {id:'hut',name:'Choza',icon:'🛖',cost:{wood:10,stone:5},pop:3,desc:'+3 habitantes',req:null,built:false},
+  {id:'big_hut',name:'Cabaña Grande',icon:'🏚️',cost:{wood:20,stone:12},pop:6,desc:'+6 habitantes',req:'construction',built:false},
+  {id:'storehouse',name:'Almacén',icon:'📦',cost:{wood:15,stone:8},pop:0,desc:'Guarda más recursos',req:null,built:false},
+  {id:'farm',name:'Granja',icon:'🌾',cost:{wood:12,stone:5},pop:0,desc:'Genera comida',req:'farming',built:false},
+  {id:'mine',name:'Mina',icon:'⛏️',cost:{wood:8,stone:15},pop:0,desc:'Genera piedra',req:'tools',built:false},
+  {id:'dock',name:'Muelle',icon:'🚢',cost:{wood:20,stone:5},pop:0,desc:'Genera pescado',req:'fishing',built:false},
+  {id:'temple',name:'Templo',icon:'🗿',cost:{wood:30,stone:30},pop:0,desc:'Genera ciencia x2',req:'writing',built:false},
+];
+
+const ROLE_DATA=[
+  {id:'hunter',name:'Cazador',icon:'🏹',desc:'Obtiene carne'},
+  {id:'gatherer',name:'Recolector',icon:'🧺',desc:'Obtiene madera y piedra'},
+  {id:'builder',name:'Constructor',icon:'🔨',desc:'Construye más rápido'},
+  {id:'fisher',name:'Pescador',icon:'🎣',desc:'Obtiene pescado'},
+  {id:'shaman',name:'Chamán',icon:'🔮',desc:'Genera ciencia'},
+];
+
+const UNIT_NAMES=['Krom','Uga','Brak','Tova','Nela','Zor','Pika','Rath','Sela','Vorn','Drak','Mira'];
+const UNIT_SKINS=['#FFDAB9','#F4C68A','#C68642','#8D5524'];
+
+// ==================== GENERACIÓN DEL MUNDO ====================
+function generateWorld(){
+  G.tiles=[];
+  const cols=G.TCOLS,rows=G.TROWS;
+  // Inicializar con hierba
+  for(let r=0;r<rows;r++){
+    G.tiles[r]=[];
+    for(let c=0;c<cols;c++) G.tiles[r][c]={type:TILE_TYPES.GRASS,variant:Math.floor(Math.random()*3)};
+  }
+  // Río en el centro
+  const river=Math.floor(cols/2)+Math.floor(Math.random()*4-2);
+  for(let r=0;r<rows;r++){
+    for(let w=-1;w<=1;w++){
+      const c=river+w+Math.floor(Math.sin(r*.3)*2);
+      if(c>=0&&c<cols) G.tiles[r][c]={type:TILE_TYPES.WATER,variant:0};
+    }
+    // Arena a los lados del río
+    const c1=river-2+Math.floor(Math.sin(r*.3)*2);
+    const c2=river+2+Math.floor(Math.sin(r*.3)*2);
+    if(c1>=0&&c1<cols) G.tiles[r][c1]={type:TILE_TYPES.SAND,variant:0};
+    if(c2>=0&&c2<cols) G.tiles[r][c2]={type:TILE_TYPES.SAND,variant:0};
+  }
+  // Bosques
+  for(let i=0;i<60;i++){
+    const r=2+Math.floor(Math.random()*(rows-4));
+    const c=Math.floor(Math.random()*(cols/2-3));
+    if(G.tiles[r][c].type===TILE_TYPES.GRASS) G.tiles[r][c]={type:TILE_TYPES.FOREST,variant:0};
+    const cr=cols-1-c;
+    if(G.tiles[r][cr]&&G.tiles[r][cr].type===TILE_TYPES.GRASS) G.tiles[r][cr]={type:TILE_TYPES.FOREST,variant:0};
+  }
+  // Rocas
+  for(let i=0;i<30;i++){
+    const r=2+Math.floor(Math.random()*(rows-4));
+    const c=2+Math.floor(Math.random()*(cols-4));
+    if(G.tiles[r][c].type===TILE_TYPES.GRASS) G.tiles[r][c]={type:TILE_TYPES.ROCK,variant:0};
+  }
+}
+
+function generateResourceNodes(){
+  G.resources_nodes=[];
+  const T=G.TSIZE;
+  G.tiles.forEach((row,r)=>{
+    row.forEach((tile,c)=>{
+      if(tile.type===TILE_TYPES.FOREST && Math.random()<0.6){
+        G.resources_nodes.push({x:c*T+T/2,y:r*T+T/2,type:'wood',amount:8+Math.floor(Math.random()*6),maxAmount:12,icon:'🌲'});
+      } else if(tile.type===TILE_TYPES.ROCK && Math.random()<0.7){
+        G.resources_nodes.push({x:c*T+T/2,y:r*T+T/2,type:'stone',amount:6+Math.floor(Math.random()*5),maxAmount:10,icon:'🪨'});
+      } else if(tile.type===TILE_TYPES.GRASS && Math.random()<0.05){
+        G.resources_nodes.push({x:c*T+T/2,y:r*T+T/2,type:'food',amount:5+Math.floor(Math.random()*4),maxAmount:8,icon:'🍓'});
+      } else if(tile.type===TILE_TYPES.WATER && Math.random()<0.3){
+        G.resources_nodes.push({x:c*T+T/2,y:r*T+T/2,type:'fish',amount:6+Math.floor(Math.random()*4),maxAmount:10,icon:'🐟'});
+      }
+    });
+  });
+}
+
+// ==================== INICIO DEL JUEGO ====================
+function startGame(){
+  // Reset
+  Object.assign(G,{
+    resources:{wood:30,stone:20,food:40,fish:0,science:0},
+    day:1,tick:0,season:0,seasonDay:0,maxPop:0,builtCount:0,techCount:0,
+    buildings:[],units:[],resources_nodes:[],
+    roles:{hunter:0,gatherer:0,builder:0,fisher:0,shaman:0},
+    unassigned:0,paused:false
+  });
+  TECHS.forEach(t=>t.done=false);
+  BUILDINGS.forEach(b=>b.built=false);
+
+  generateWorld();
+  generateResourceNodes();
+  resize();
+
+  // Jefe
+  const cx=(G.TCOLS/2)*G.TSIZE, cy=(G.TROWS/2)*G.TSIZE;
+  G.chief={
+    x:cx,y:cy,
+    speed:3,
+    hp:100,maxHp:100,
+    name:chiefConfig.name,
+    skin:chiefConfig.skin,
+    cloth:chiefConfig.cloth,
+    icon:chiefConfig.icon,
+    isChief:true,
+    gathering:null,gatherTimer:0,
+    dir:0
+  };
+
+  // Camara centrada en jefe
+  G.camera.x=G.chief.x-W/2;
+  G.camera.y=G.chief.y-H/2;
+
+  // Unidades iniciales
+  addUnit();addUnit();
+
+  // Hoguera inicial
+  placeBuilding('campfire',cx-G.TSIZE,cy-G.TSIZE,true);
+  G.resources.wood=20;G.resources.stone=15;
+
+  // UI
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('bottom-bar').classList.remove('hidden');
+  buildBuildPanel();
+  buildRolesPanel();
+  buildTechPanel();
+  updateHUD();
+  setupPanelButtons();
+
+  gameRunning=true;
+  if(animId) cancelAnimationFrame(animId);
+  loop();
+}
+
+// ==================== UNIDADES ====================
+function addUnit(){
+  const cx=G.chief?G.chief.x:(G.TCOLS/2)*G.TSIZE;
+  const cy=G.chief?G.chief.y:(G.TROWS/2)*G.TSIZE;
+  const u={
+    x:cx+(Math.random()-0.5)*80,
+    y:cy+(Math.random()-0.5)*80,
+    speed:1.5+Math.random()*.5,
+    hp:80+Math.floor(Math.random()*40),
+    maxHp:100,
+    name:UNIT_NAMES[Math.floor(Math.random()*UNIT_NAMES.length)],
+    skin:UNIT_SKINS[Math.floor(Math.random()*UNIT_SKINS.length)],
+    cloth:CLOTH_COLORS[Math.floor(Math.random()*CLOTH_COLORS.length)],
+    role:'unassigned',
+    target:null,
+    gatherTimer:0,
+    idle:0,
+    dir:0
+  };
+  G.units.push(u);
+  G.unassigned++;
+  if(G.units.length+1>G.maxPop) G.maxPop=G.units.length+1;
+}
+
+function getMaxPop(){
+  let base=2;
+  G.buildings.forEach(b=>{
+    const def=BUILDINGS.find(x=>x.id===b.type);
+    if(def) base+=def.pop;
+  });
+  return base;
+}
+
+// ==================== EDIFICIOS ====================
+function placeBuilding(type,x,y,free=false){
+  const def=BUILDINGS.find(b=>b.id===type);
+  if(!def) return false;
+  if(!free){
+    if(def.req && !TECHS.find(t=>t.id===def.req)?.done){showMsg('Necesitas la tecnología: '+def.req);return false;}
+    const maxP=getMaxPop();
+    const curP=G.units.length+1;
+    if(type==='hut'||type==='big_hut'){
+      if(curP>=maxP+def.pop-1){} // permitir
+    }
+    if(!spendResources(def.cost)){showMsg('Recursos insuficientes 📦');return false;}
+  }
+  const bld={type,x,y,hp:100,maxHp:100,built:true,icon:def.icon,name:def.name};
+  G.buildings.push(bld);
+  G.builtCount++;
+  // Dar beneficio inmediato
+  if(type==='hut') addUnit(),addUnit(),addUnit();
+  if(type==='big_hut') for(let i=0;i<6;i++) addUnit();
+  showMsg(def.icon+' '+def.name+' construida!');
+  buildBuildPanel();
+  return true;
+}
+
+function spendResources(cost){
+  for(const k in cost){if((G.resources[k]||0)<cost[k]) return false;}
+  for(const k in cost) G.resources[k]-=cost[k];
+  return true;
+}
+
+// ==================== TECNOLOGÍAS ====================
+function researchTech(id){
+  const t=TECHS.find(x=>x.id===id);
+  if(!t||t.done) return;
+  for(const r of t.req){if(!TECHS.find(x=>x.id===r)?.done){showMsg('Requiere: '+r);return;}}
+  if(!spendResources(t.cost)){showMsg('Ciencia insuficiente 🔬');return;}
+  t.done=true;G.techCount++;
+  showMsg(t.icon+' '+t.name+' investigada!');
+  buildTechPanel();buildBuildPanel();
+}
+
+// ==================== LÓGICA DEL JUEGO ====================
+let lastTime=0;
+function loop(ts=0){
+  if(!gameRunning) return;
+  const dt=Math.min(ts-lastTime,50);
+  lastTime=ts;
+  if(!G.paused){
+    update(dt);
+    render();
+  }
+  animId=requestAnimationFrame(loop);
+}
+
+function update(dt){
+  G.tick++;
+  handleChiefMovement();
+  updateUnits();
+  tickResources();
+  tickSeasons();
+  checkGameOver();
+  updateHUD();
+  clampCamera();
+}
+
+// ==================== MOVIMIENTO JEFE ====================
+const joyInput={x:0,y:0};
+
+function handleChiefMovement(){
+  const c=G.chief;
+  let dx=0,dy=0;
+  if(G.keys['w']||G.keys['arrowup']) dy=-1;
+  if(G.keys['s']||G.keys['arrowdown']) dy=1;
+  if(G.keys['a']||G.keys['arrowleft']) dx=-1;
+  if(G.keys['d']||G.keys['arrowright']) dx=1;
+  dx+=joyInput.x;dy+=joyInput.y;
+  const spd=c.speed*(TECHS.find(t=>t.id==='tools')?.done?1.3:1);
+  if(dx||dy){
+    const len=Math.sqrt(dx*dx+dy*dy);
+    c.x+=dx/len*spd;c.y+=dy/len*spd;
+    c.dir=Math.atan2(dy,dx);
+    // Recolectar recurso cercano
+    autoGather(c,'wood','stone','food');
+  }
+  const maxX=G.TCOLS*G.TSIZE,maxY=G.TROWS*G.TSIZE;
+  c.x=Math.max(16,Math.min(maxX-16,c.x));
+  c.y=Math.max(16,Math.min(maxY-16,c.y));
+  // Cámara suave
+  const targetCX=c.x-W/2,targetCY=c.y-H/2;
+  G.camera.x+=(targetCX-G.camera.x)*.12;
+  G.camera.y+=(targetCY-G.camera.y)*.12;
+}
+
+function autoGather(unit,...types){
+  const range=40;
+  G.resources_nodes.forEach(n=>{
+    if(n.amount<=0) return;
+    if(types.length&&!types.includes(n.type)) return;
+    const dx=unit.x-n.x,dy=unit.y-n.y;
+    if(dx*dx+dy*dy<range*range){
+      unit.gatherTimer=(unit.gatherTimer||0)+1;
+      if(unit.gatherTimer>30){
+        unit.gatherTimer=0;
+        const mult=TECHS.find(t=>t.id==='tools')?.done?2:1;
+        G.resources[n.type]=(G.resources[n.type]||0)+mult;
+        n.amount--;
+        if(n.amount<=0) showMsg('Recurso agotado '+n.icon);
+      }
+    }
+  });
+}
+
+// ==================== IA UNIDADES ====================
+function updateUnits(){
+  G.units.forEach(u=>{
+    if(u.hp<=0) return;
+    switch(u.role){
+      case 'gatherer': aiGatherer(u);break;
+      case 'hunter': aiHunter(u);break;
+      case 'fisher': aiFisher(u);break;
+      case 'shaman': aiShaman(u);break;
+      case 'builder': aiBuilder(u);break;
+      default: aiIdle(u);break;
+    }
+    // Límites
+    const mx=G.TCOLS*G.TSIZE,my=G.TROWS*G.TSIZE;
+    u.x=Math.max(8,Math.min(mx-8,u.x));
+    u.y=Math.max(8,Math.min(my-8,u.y));
+  });
+}
+
+function moveTowards(u,tx,ty,spd=null){
+  const dx=tx-u.x,dy=ty-u.y,d=Math.sqrt(dx*dx+dy*dy);
+  if(d<4) return true;
+  const s=spd||u.speed;
+  u.x+=dx/d*s;u.y+=dy/d*s;
+  u.dir=Math.atan2(dy,dx);
+  return false;
+}
+
+function findNearest(u,type){
+  let best=null,bd=Infinity;
+  G.resources_nodes.forEach(n=>{
+    if(n.type!==type||n.amount<=0) return;
+    const d=(n.x-u.x)**2+(n.y-u.y)**2;
+    if(d<bd){bd=d;best=n;}
+  });
+  return best;
+}
+
+function aiGatherer(u){
+  if(!u.target||u.target.amount<=0){
+    u.target=findNearest(u,'wood')||findNearest(u,'stone')||findNearest(u,'food');
+  }
+  if(!u.target){aiIdle(u);return;}
+  const at=moveTowards(u,u.target.x,u.target.y);
+  if(at){
+    u.gatherTimer++;
+    if(u.gatherTimer>40){
+      u.gatherTimer=0;
+      const mult=TECHS.find(t=>t.id==='tools')?.done?2:1;
+      G.resources[u.target.type]=(G.resources[u.target.type]||0)+mult;
+      u.target.amount--;
+      if(u.target.amount<=0) u.target=null;
+    }
+  }
+}
+
+function aiHunter(u){
+  if(!u.target||u.target.amount<=0){
+    u.target=findNearest(u,'food');
+    if(!u.target){u.target={x:G.chief.x+(Math.random()-0.5)*200,y:G.chief.y+(Math.random()-0.5)*200,type:'food',amount:99,fake:true};}
+  }
+  const at=moveTowards(u,u.target.x,u.target.y);
+  if(at){
+    u.gatherTimer++;
+    if(u.gatherTimer>60){
+      u.gatherTimer=0;
+      const mult=TECHS.find(t=>t.id==='tools')?.done?2:1;
+      G.resources.food=(G.resources.food||0)+2*mult;
+      if(!u.target.fake){u.target.amount--;if(u.target.amount<=0)u.target=null;}
+      else u.target=null;
+    }
+  }
+}
+
+function aiFisher(u){
+  if(!u.target||u.target.amount<=0) u.target=findNearest(u,'fish');
+  if(!u.target){aiIdle(u);return;}
+  const at=moveTowards(u,u.target.x,u.target.y);
+  if(at){
+    u.gatherTimer++;
+    if(u.gatherTimer>50){
+      u.gatherTimer=0;
+      const mult=TECHS.find(t=>t.id==='fishing')?.done?2:1;
+      G.resources.fish=(G.resources.fish||0)+mult;
+      G.resources.food=(G.resources.food||0)+mult;
+      u.target.amount--;if(u.target.amount<=0)u.target=null;
+    }
+  }
+}
+
+function aiShaman(u){
+  moveTowards(u,G.chief.x+(Math.sin(G.tick*.02)*60),G.chief.y+(Math.cos(G.tick*.02)*60));
+  if(G.tick%120===0){
+    const mult=TECHS.find(t=>t.id==='writing')?.done?2:1;
+    G.resources.science=(G.resources.science||0)+mult;
+  }
+}
+
+function aiBuilder(u){
+  moveTowards(u,G.chief.x+(Math.random()-0.5)*40,G.chief.y+(Math.random()-0.5)*40);
+}
+
+function aiIdle(u){
+  if(Math.random()<0.01) u.target={x:G.chief.x+(Math.random()-0.5)*100,y:G.chief.y+(Math.random()-0.5)*100};
+  if(u.target) if(moveTowards(u,u.target.x,u.target.y)) u.target=null;
+}
+
+// ==================== RECURSOS POR TICK ====================
+function tickResources(){
+  if(G.tick%300!==0) return; // Cada ~5 segundos a 60fps
+  const popCount=G.units.length+1;
+  // Consumo de comida
+  let foodConsume=popCount;
+  if(G.season===3) foodConsume*=2; // Invierno
+  if(G.season===3 && !G.buildings.find(b=>b.type==='campfire')){foodConsume*=1.5;}
+  G.resources.food=Math.max(0,G.resources.food-foodConsume);
+
+  // Granjas
+  const farms=G.buildings.filter(b=>b.type==='farm').length;
+  G.resources.food+=farms*4;
+
+  // Minas
+  const mines=G.buildings.filter(b=>b.type==='mine').length;
+  G.resources.stone+=mines*3;
+
+  // Muelles
+  const docks=G.buildings.filter(b=>b.type==='dock').length;
+  G.resources.fish+=docks*3;G.resources.food+=docks*2;
+
+  // Templo
+  const temples=G.buildings.filter(b=>b.type==='temple').length;
+  const sciMult=TECHS.find(t=>t.id==='writing')?.done?2:1;
+  G.resources.science+=temples*5*sciMult;
+
+  // Límite almacén
+  const storehouses=G.buildings.filter(b=>b.type==='storehouse').length;
+  const tradeMult=TECHS.find(t=>t.id==='trade')?.done?2:1;
+  const maxStore=200*(1+storehouses*tradeMult);
+  for(const k in G.resources) G.resources[k]=Math.min(G.resources[k],maxStore);
+  for(const k in G.resources) G.resources[k]=Math.max(0,G.resources[k]);
+
+  // HP por hambre
+  if(G.resources.food<=0){
+    G.chief.hp=Math.max(0,G.chief.hp-10);
+    G.units.forEach(u=>{u.hp=Math.max(0,u.hp-8);});
+    showMsg('⚠️ ¡Sin comida! La tribu sufre');
+  } else {
+    // Curación lenta
+    const medMult=TECHS.find(t=>t.id==='medicine')?.done?2:1;
+    G.chief.hp=Math.min(G.chief.maxHp,G.chief.hp+3*medMult);
+    G.units.forEach(u=>{u.hp=Math.min(u.maxHp,u.hp+2*medMult);});
+  }
+}
+
+function tickSeasons(){
+  G.tick++;
+  if(G.tick%3600===0){ // Cada 60 seg aprox
+    G.day++;
+    G.seasonDay++;
+    if(G.seasonDay>=10){
+      G.seasonDay=0;
+      G.season=(G.season+1)%4;
+      showMsg('Cambio de estación: '+G.seasonNames[G.season]);
+    }
+    // Regenerar recursos
+    if(G.tick%7200===0){
+      G.resources_nodes.forEach(n=>{
+        if(n.amount<n.maxAmount) n.amount++;
+      });
+    }
+  }
+}
+
+function checkGameOver(){
+  if(G.chief.hp<=0){
+    gameOver(false,'Tu jefe ha muerto de hambre y frío.');
+    return;
+  }
+  const deadUnits=G.units.filter(u=>u.hp<=0).length;
+  if(deadUnits>0) G.units=G.units.filter(u=>u.hp>0);
+}
+
+function gameOver(win,msg){
+  gameRunning=false;
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('bottom-bar').classList.add('hidden');
+  ['p-build','p-roles','p-tech','p-pop'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  const go=document.getElementById('s-gameover');
+  go.classList.remove('hidden');
+  document.getElementById('go-emoji').textContent=win?'🏆':'💀';
+  document.getElementById('go-title').textContent=win?'¡Victoria!':'Tu tribu pereció';
+  document.getElementById('go-msg').textContent=msg;
+  document.getElementById('go-days').textContent=G.day;
+  document.getElementById('go-pop').textContent=G.maxPop;
+  document.getElementById('go-built').textContent=G.builtCount;
+  document.getElementById('go-tech').textContent=G.techCount;
+}
+
+// ==================== RENDER ====================
+function render(){
+  ctx.clearRect(0,0,W,H);
+  const cx=Math.floor(G.camera.x),cy=Math.floor(G.camera.y);
+  ctx.save();
+  ctx.translate(-cx,-cy);
+
+  drawTiles(cx,cy);
+  drawResourceNodes();
+  drawBuildings();
+  drawUnits();
+  drawChief();
+
+  ctx.restore();
+}
+
+const TILE_COLORS=[
+  '#3a7d44','#1a5276','#d4a853','#2d5a1b','#7f8c8d','#aed6f1'
+];
+const TILE_COLORS_WIN=[
+  ['#4a9d5a','#3a7d44','#2d6b35'],
+  ['#1a5276','#1a6fa0','#1a4276'],
+  ['#d4a853','#c19a46','#e0b860'],
+  ['#2d5a1b','#3a6b25','#245015'],
+  ['#7f8c8d','#6c7a7b','#95a5a6'],
+  ['#cce4f0','#bbd6e8','#ddeffa']
+];
+
+function drawTiles(camX,camY){
+  const T=G.TSIZE;
+  const startC=Math.max(0,Math.floor(camX/T));
+  const endC=Math.min(G.TCOLS,Math.ceil((camX+W)/T)+1);
+  const startR=Math.max(0,Math.floor(camY/T));
+  const endR=Math.min(G.TROWS,Math.ceil((camY+H)/T)+1);
+
+  // Tinte de estación
+  const seasonTints=['rgba(100,200,100,.05)','rgba(255,220,50,.05)','rgba(200,120,50,.08)','rgba(100,150,220,.1)'];
+
+  for(let r=startR;r<endR;r++){
+    for(let c=startC;c<endC;c++){
+      const tile=G.tiles[r][c];
+      const colors=TILE_COLORS_WIN[tile.type];
+      ctx.fillStyle=colors[tile.variant%colors.length];
+      ctx.fillRect(c*T,r*T,T,T);
+      // Detalles
+      if(tile.type===TILE_TYPES.GRASS && Math.random()<.003){
+        ctx.fillStyle='rgba(80,160,80,.5)';
+        ctx.fillRect(c*T+8,r*T+8,2,8);
+        ctx.fillRect(c*T+16,r*T+12,2,6);
+      }
+      // Tinte estación
+      ctx.fillStyle=seasonTints[G.season];
+      ctx.fillRect(c*T,r*T,T,T);
+    }
+  }
+}
+
+function drawResourceNodes(){
+  G.resources_nodes.forEach(n=>{
+    if(n.amount<=0) return;
+    const camX=G.camera.x,camY=G.camera.y;
+    if(n.x<camX-50||n.x>camX+W+50||n.y<camY-50||n.y>camY+H+50) return;
+    ctx.font='24px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.globalAlpha=0.6+n.amount/n.maxAmount*0.4;
+    ctx.fillText(n.icon,n.x,n.y);
+    ctx.globalAlpha=1;
+  });
+}
+
+function drawBuildings(){
+  G.buildings.forEach(b=>{
+    const camX=G.camera.x,camY=G.camera.y;
+    if(b.x<camX-60||b.x>camX+W+60||b.y<camY-60||b.y>camY+H+60) return;
+    // Base
+    ctx.fillStyle='rgba(100,70,40,.7)';
+    ctx.beginPath();ctx.roundRect(b.x-22,b.y-22,44,44,6);ctx.fill();
+    ctx.strokeStyle='rgba(255,215,0,.4)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(b.x-22,b.y-22,44,44,6);ctx.stroke();
+    // Icono
+    ctx.font='26px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(b.icon,b.x,b.y);
+    // Nombre
+    ctx.font='10px sans-serif';ctx.fillStyle='rgba(255,255,255,.7)';
+    ctx.fillText(b.name,b.x,b.y+28);
+  });
+}
+
+function drawUnit(u,isChief=false){
+  const camX=G.camera.x,camY=G.camera.y;
+  if(u.x<camX-30||u.x>camX+W+30||u.y<camY-30||u.y>camY+H+30) return;
+  const r=isChief?14:11;
+  // Sombra
+  ctx.fillStyle='rgba(0,0,0,.3)';
+  ctx.beginPath();ctx.ellipse(u.x,u.y+r+4,r*.7,r*.3,0,0,Math.PI*2);ctx.fill();
+  // Corpo
+  ctx.fillStyle=u.cloth||'#8B4513';
+  ctx.beginPath();ctx.ellipse(u.x,u.y+r*.4,r*.7,r*.9,0,0,Math.PI*2);ctx.fill();
+  // Cabeça
+  ctx.fillStyle=u.skin;
+  ctx.beginPath();ctx.arc(u.x,u.y-r*.2,r,0,Math.PI*2);ctx.fill();
+  // Ojos
+  ctx.fillStyle='#222';
+  const eyeOff=Math.cos(u.dir||0)*3;
+  ctx.beginPath();ctx.arc(u.x+(eyeOff>0?3:-3),u.y-r*.2-2,isChief?2.5:1.8,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(u.x+(eyeOff>0?-3:3),u.y-r*.2-2,isChief?2.5:1.8,0,Math.PI*2);ctx.fill();
+  // Icono jefe / rol
+  if(isChief){
+    ctx.font=`${r+4}px serif`;ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText(u.icon,u.x,u.y-r*1.4);
+  } else {
+    const roleIcons={hunter:'🏹',gatherer:'🧺',builder:'🔨',fisher:'🎣',shaman:'🔮',unassigned:'😐'};
+    ctx.font='12px serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText(roleIcons[u.role]||'😐',u.x,u.y-r*1.2);
+  }
+  // HP bar
+  if(u.hp<u.maxHp){
+    const bw=isChief?32:24,bh=3;
+    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(u.x-bw/2,u.y-r*2-bh-2,bw,bh);
+    ctx.fillStyle=u.hp/u.maxHp>.5?'#7fff7f':'#ff6b6b';
+    ctx.fillRect(u.x-bw/2,u.y-r*2-bh-2,bw*(u.hp/u.maxHp),bh);
+  }
+  // Nombre
+  if(isChief){
+    ctx.font='bold 11px sans-serif';ctx.fillStyle='#ffd700';ctx.textAlign='center';
+    ctx.fillText(u.name,u.x,u.y+r*1.8+8);
+  }
+}
+
+function drawUnits(){G.units.forEach(u=>drawUnit(u,false));}
+function drawChief(){if(G.chief) drawUnit(G.chief,true);}
+
+function clampCamera(){
+  const maxX=G.TCOLS*G.TSIZE-W,maxY=G.TROWS*G.TSIZE-H;
+  G.camera.x=Math.max(0,Math.min(maxX,G.camera.x));
+  G.camera.y=Math.max(0,Math.min(maxY,G.camera.y));
+}
+
+// ==================== HUD ====================
+function updateHUD(){
+  const r=G.resources;
+  document.getElementById('r-wood').textContent=Math.floor(r.wood||0);
+  document.getElementById('r-stone').textContent=Math.floor(r.stone||0);
+  document.getElementById('r-food').textContent=Math.floor(r.food||0);
+  document.getElementById('r-fish').textContent=Math.floor(r.fish||0);
+  document.getElementById('r-sci').textContent=Math.floor(r.science||0);
+  const sn=document.getElementById('hud-season');
+  sn.textContent=G.seasonNames[G.season];
+  sn.className='info-chip season-'+['spring','summer','autumn','winter'][G.season];
+  document.getElementById('hud-day').textContent='Día '+G.day;
+  document.getElementById('hud-pop').textContent='👥 '+(G.units.length+1)+'/'+getMaxPop();
+}
+
+// ==================== PANELES ====================
+function buildBuildPanel(){
+  const grid=document.getElementById('build-grid');
+  grid.innerHTML='';
+  BUILDINGS.forEach(b=>{
+    const locked=b.req&&!TECHS.find(t=>t.id===b.req)?.done;
+    const card=document.createElement('div');
+    card.className='build-card'+(locked?' locked':'');
+    const costStr=Object.entries(b.cost).map(([k,v])=>`${v} ${k==='wood'?'🌲':k==='stone'?'🪨':k==='food'?'🍖':'?'}`).join(' · ');
+    card.innerHTML=`<div class="bicon">${b.icon}</div><div class="bname">${b.name}</div><div class="bcost">${costStr}</div><div class="bpop">${b.pop?'+'+b.pop+' hab':b.desc}</div>`;
+    if(!locked) card.onclick=()=>{
+      const c=G.chief;
+      placeBuilding(b.id,c.x+60*(Math.random()-.5),c.y+60*(Math.random()-.5));
+    };
+    grid.appendChild(card);
+  });
+}
+
+function buildRolesPanel(){
+  const list=document.getElementById('role-list');
+  list.innerHTML='';
+  ROLE_DATA.forEach(rd=>{
+    const cnt=G.roles[rd.id]||0;
+    const item=document.createElement('div');item.className='role-item';
+    item.innerHTML=`
+      <div class="role-left">${rd.icon} <span>${rd.name}</span></div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="role-btn minus" data-role="${rd.id}">−</button>
+        <span class="role-count" id="rc-${rd.id}">${cnt}</span>
+        <button class="role-btn plus" data-role="${rd.id}">+</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+  list.querySelectorAll('.role-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      const role=btn.dataset.role;
+      const isPlus=btn.classList.contains('plus');
+      if(isPlus){
+        if(G.unassigned<=0){showMsg('No hay miembros sin asignar');return;}
+        G.roles[role]=(G.roles[role]||0)+1;
+        G.unassigned--;
+        // Asignar a unidad
+        const free=G.units.find(u=>u.role==='unassigned');
+        if(free){free.role=role;free.target=null;}
+      } else {
+        if((G.roles[role]||0)<=0) return;
+        G.roles[role]--;G.unassigned++;
+        const assigned=G.units.find(u=>u.role===role);
+        if(assigned){assigned.role='unassigned';assigned.target=null;}
+      }
+      document.getElementById('rc-'+role).textContent=G.roles[role]||0;
+      buildPopPanel();
+    };
+  });
+}
+
+function buildTechPanel(){
+  const list=document.getElementById('tech-list');
+  list.innerHTML='';
+  TECHS.forEach(t=>{
+    const locked=t.req.some(r=>!TECHS.find(x=>x.id===r)?.done);
+    const item=document.createElement('div');
+    item.className='tech-item'+(t.done?' done':locked?' locked':'');
+    const costStr=Object.entries(t.cost).map(([k,v])=>v+' '+k).join(', ');
+    item.innerHTML=`
+      <div class="tech-icon">${t.icon}</div>
+      <div class="tech-info"><div class="tname">${t.name}</div><div class="tcost">${t.done?'✅ Investigada':locked?'🔒 Bloqueada':costStr+' 🔬'}</div></div>
+      ${!t.done&&!locked?`<button class="tech-btn" data-id="${t.id}">🔬</button>`:''}
+      ${t.done?`<button class="tech-btn done-btn">✓</button>`:''}
+    `;
+    list.appendChild(item);
+  });
+  list.querySelectorAll('.tech-btn:not(.done-btn)').forEach(btn=>{
+    btn.onclick=()=>researchTech(btn.dataset.id);
+  });
+}
+
+function buildPopPanel(){
+  const list=document.getElementById('pop-list');
+  list.innerHTML='';
+  const all=[G.chief,...G.units];
+  all.forEach(u=>{
+    const item=document.createElement('div');item.className='pop-item';
+    const roleLabel=u.isChief?'👑 Jefe':(u.role==='unassigned'?'Sin rol':ROLE_DATA.find(r=>r.id===u.role)?.icon+' '+ROLE_DATA.find(r=>r.id===u.role)?.name)||u.role;
+    const hpPct=Math.round(u.hp/u.maxHp*100);
+    item.innerHTML=`
+      <div class="pop-avatar" style="font-size:26px">${u.isChief?u.icon:'🧑'}</div>
+      <div class="pop-details">
+        <div class="pop-name">${u.name}</div>
+        <div class="pop-role">${roleLabel}</div>
+        <div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%"></div></div>
+      </div>
+      <div class="pop-hp">${Math.floor(u.hp)}/${u.maxHp}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ==================== BOTONES PANELES ====================
+function setupPanelButtons(){
+  function togglePanel(pid,buildFn){
+    const p=document.getElementById(pid);
+    const wasHidden=p.classList.contains('hidden');
+    ['p-build','p-roles','p-tech','p-pop'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    ['bb-build','bb-roles','bb-tech','bb-pop'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+    if(wasHidden){p.classList.remove('hidden');if(buildFn)buildFn();}
+  }
+  document.getElementById('bb-build').onclick=()=>{togglePanel('p-build',buildBuildPanel);document.getElementById('bb-build').classList.toggle('active');};
+  document.getElementById('bb-roles').onclick=()=>{togglePanel('p-roles',buildRolesPanel);document.getElementById('bb-roles').classList.toggle('active');};
+  document.getElementById('bb-tech').onclick=()=>{togglePanel('p-tech',buildTechPanel);document.getElementById('bb-tech').classList.toggle('active');};
+  document.getElementById('bb-pop').onclick=()=>{togglePanel('p-pop',buildPopPanel);document.getElementById('bb-pop').classList.toggle('active');};
+
+  document.getElementById('close-build').onclick=()=>document.getElementById('p-build').classList.add('hidden');
+  document.getElementById('close-roles').onclick=()=>document.getElementById('p-roles').classList.add('hidden');
+  document.getElementById('close-tech').onclick=()=>document.getElementById('p-tech').classList.add('hidden');
+  document.getElementById('close-pop').onclick=()=>document.getElementById('p-pop').classList.add('hidden');
+}
+
+// ==================== MENSAJES FLOTANTES ====================
+function showMsg(text){
+  const area=document.getElementById('msg-area');
+  const el=document.createElement('div');el.className='msg-float';el.textContent=text;
+  area.appendChild(el);setTimeout(()=>el.remove(),2600);
+}
+
+// ==================== CONTROLES TECLADO ====================
+document.addEventListener('keydown',e=>{G.keys[e.key.toLowerCase()]=true;});
+document.addEventListener('keyup',e=>{G.keys[e.key.toLowerCase()]=false;});
+
+// ==================== JOYSTICK TÁCTIL ====================
+(function setupJoystick(){
+  const zone=document.getElementById('joystick-zone');
+  const base=document.getElementById('joystick-base');
+  const stick=document.getElementById('joystick-stick');
+  const R=45,SR=18;
+  let touching=false,startX=0,startY=0;
+
+  function handleStart(e){
+    e.preventDefault();
+    const t=e.touches?e.touches[0]:e;
+    const rect=base.getBoundingClientRect();
+    startX=rect.left+R;startY=rect.top+R;
+    touching=true;move(t);
+  }
+  function handleMove(e){
+    e.preventDefault();
+    if(!touching) return;
+    move(e.touches?e.touches[0]:e);
+  }
+  function handleEnd(){
+    touching=false;
+    stick.style.left='50%';stick.style.top='50%';
+    joyInput.x=0;joyInput.y=0;
+  }
+  function move(t){
+    let dx=t.clientX-startX,dy=t.clientY-startY;
+    const d=Math.sqrt(dx*dx+dy*dy);
+    if(d>R){dx=dx/d*R;dy=dy/d*R;}
+    stick.style.left=(R+dx-SR)+'px';stick.style.top=(R+dy-SR)+'px';
+    joyInput.x=dx/R;joyInput.y=dy/R;
+  }
+  base.addEventListener('touchstart',handleStart,{passive:false});
+  document.addEventListener('touchmove',handleMove,{passive:false});
+  document.addEventListener('touchend',handleEnd);
+})();
+
+// ==================== RESIZE ====================
+function resize(){
+  W=canvas.width=innerWidth;
+  H=canvas.height=innerHeight;
+}
+window.addEventListener('resize',()=>{resize();});
+resize();
+
+</script>
 </body>
 </html>
